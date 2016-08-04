@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+ <head>
+ <title>Light Control</title>
+ </head>
+ <body>
+ <!-- HTML to display MQTT topic values -->
+ <div><strong>Light Control</strong></div><br>
+ <div id="t1"></div>
+ <div id="t2"></div>
+ <!-- mosquitto MQTT -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.js" type="text/javascript"></script>
+ <!-- jQuery -->
+ <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+ <!-- Custom MQTT client for this example -->
+ <script>
+ // Create a client instance
+ client = new Paho.MQTT.Client("ws://iot.eclipse.org/ws", "myClientId" + new Date().getTime());
+
+ // set callback handlers
+ client.onConnectionLost = onConnectionLost;
+ client.onMessageArrived = onMessageArrived;
+
+ // connect the client
+client.connect({onSuccess:onConnect});
+
+// called when the client connects
+function onConnect() {
+  // Once a connection has been made, make a subscription and send a message.
+  $("#t1").html("connected");
+  console.log("onConnect");
+  client.subscribe("welcome");
+  message = new Paho.MQTT.Message("Dios es Grande!!");
+  message.destinationName = "welcome";
+  client.send(message);
+}
+
+// called when the client loses its connection
+function onConnectionLost(responseObject) {
+  if (responseObject.errorCode !== 0) {
+    console.log("onConnectionLost:"+responseObject.errorMessage);
+    $("#t1").html("lost connection");
+  }
+}
+
+// called when a message arrives
+function onMessageArrived(message) {
+  console.log("onMessageArrived:"+message.payloadString);
+  $("#t2").html("message arrived: "+message.payloadString);
+}
+
+function sendLightOn(){
+  light_message = new Paho.MQTT.Message("1");
+  light_message.destinationName = "light";
+  client.send(light_message);
+}
+
+function sendLightOff(){
+  light_message = new Paho.MQTT.Message("0");
+  light_message.destinationName = "light";
+  client.send(light_message);
+}
+ </script>
+ <button type="button" onclick="sendLightOn()">LightON</button>
+ <button type="button" onclick="sendLightOff()">LightOFF</button>
+ </body>
+</html>
